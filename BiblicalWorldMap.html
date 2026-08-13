@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Journeys &amp; Empires — A Biblical World Timeline</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --parchment:#EDE4D3; --parchment-dk:#E3D8BC; --panel:#F4EEDC;
+    --ink:#2B2418; --ink-soft:#5A4B32; --gold:#8A6D3F;
+    --sea:#20455B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--parchment);color:var(--ink);font-family:'Inter',sans-serif;}
+  .font-display{font-family:'Cinzel',serif;}
+  .font-body{font-family:'Crimson Pro',serif;}
+  #app{display:flex;flex-direction:column;height:100vh;min-height:600px;}
+
+  header{padding:18px 28px 14px;border-bottom:2px solid rgba(90,75,50,0.3);flex-shrink:0;}
+  .eyebrow{display:flex;align-items:center;gap:8px;color:var(--gold);font-size:11px;letter-spacing:.3em;text-transform:uppercase;}
+  h1{font-family:'Cinzel',serif;font-size:28px;font-weight:700;letter-spacing:.02em;margin:4px 0 0;}
+  .chips{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{border:1px solid rgba(90,75,50,.35);background:transparent;color:var(--ink-soft);font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.03em;padding:5px 10px;border-radius:3px;cursor:pointer;transition:all .15s;}
+  .chip:hover{border-color:var(--ink-soft);}
+  .chip.active{color:var(--panel);transform:scale(1.05);box-shadow:0 1px 4px rgba(0,0,0,.25);}
+  .meta-row{margin-top:12px;display:flex;flex-wrap:wrap;gap:10px 32px;font-family:'Crimson Pro',serif;font-size:15px;}
+  .meta-row .label{font-family:'Inter',sans-serif;text-transform:uppercase;font-size:11px;letter-spacing:.2em;color:var(--gold);margin-right:6px;}
+
+  main{flex:1;display:grid;grid-template-columns:2fr 1fr;gap:16px;padding:16px 20px;min-height:0;}
+  @media (max-width:900px){ main{grid-template-columns:1fr;} }
+
+  #mapwrap{position:relative;border:2px solid rgba(90,75,50,.4);border-radius:8px;overflow:hidden;box-shadow:inset 0 0 24px rgba(0,0,0,.25);}
+  #map{width:100%;height:100%;background:var(--sea);}
+  .era-badge{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(237,228,211,.92);border:1px solid rgba(90,75,50,.3);border-radius:5px;padding:6px 12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;}
+  .era-dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .map-credit{position:absolute;bottom:8px;right:10px;z-index:500;font-size:10px;color:#fff;opacity:.7;text-shadow:0 1px 2px #000;}
+
+  #panel{border:2px solid rgba(90,75,50,.4);border-radius:8px;background:var(--panel);padding:20px;display:flex;flex-direction:column;overflow-y:auto;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .panel-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:.2em;font-weight:700;padding:3px 9px;border-radius:3px;color:var(--ink);width:fit-content;}
+  .panel h2{font-family:'Cinzel',serif;font-size:23px;margin:10px 0 0;}
+  .panel .country{font-family:'Crimson Pro',serif;font-style:italic;color:var(--ink-soft);margin:0 0 10px;}
+  .stat-row{display:flex;gap:24px;font-size:13px;margin-bottom:10px;}
+  .stat-row .k{color:var(--gold);text-transform:uppercase;font-size:11px;letter-spacing:.1em;}
+  .stat-row .v{font-weight:600;}
+  hr{border:none;border-top:1px solid rgba(90,75,50,.2);margin:10px 0;}
+  .summary{font-family:'Crimson Pro',serif;font-size:16px;line-height:1.6;flex:1;}
+  .territory-line{font-size:12px;color:var(--ink-soft);}
+  .territory-line b{font-weight:700;}
+  .nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid rgba(90,75,50,.2);}
+  .navbtn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:3px;border:1px solid rgba(90,75,50,.4);background:transparent;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;}
+  .navbtn:disabled{opacity:.3;cursor:default;}
+  .navbtn:not(:disabled):hover{background:rgba(90,75,50,.1);}
+  .stepcount{font-size:11px;color:var(--gold);}
+
+  footer{border-top:2px solid rgba(90,75,50,.3);background:var(--parchment-dk);padding:14px 20px;flex-shrink:0;}
+  .transport{display:flex;align-items:center;gap:14px;}
+  #playbtn{width:38px;height:38px;border-radius:50%;background:var(--ink);color:var(--panel);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+  #playbtn:hover{filter:brightness(1.1);}
+  #speedbtn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:3px;border:1px solid rgba(90,75,50,.4);background:transparent;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;}
+  #speedbtn:hover{background:rgba(90,75,50,.1);}
+  .slider-wrap{flex:1;position:relative;padding-top:6px;}
+  #slider{width:100%;height:6px;border-radius:99px;appearance:none;cursor:pointer;background:#C9B896;}
+  #slider::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.4);cursor:pointer;}
+  #slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid var(--panel);cursor:pointer;}
+  .ticks{position:relative;width:100%;height:8px;margin-top:3px;}
+  .tick{position:absolute;top:0;width:5px;height:5px;border-radius:50%;transform:translateX(-50%);opacity:.55;}
+  .tick.on{opacity:1;transform:translateX(-50%) scale(1.6);}
+  .year-badge{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-soft);width:96px;justify-content:flex-end;flex-shrink:0;}
+
+  .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:5px;font-family:'Inter',sans-serif;}
+  .leaflet-popup-tip{background:var(--panel);}
+  .pin-label{font-size:11px;font-weight:700;font-family:'Inter',sans-serif;color:var(--panel);text-shadow:0 1px 3px rgba(0,0,0,.9);white-space:nowrap;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="eyebrow">📜 <span>Genesis Through Acts — A Real, Zoomable World Map</span></div>
+    <h1>Journeys &amp; Empires</h1>
+    <div class="chips" id="chips"></div>
+    <div class="meta-row">
+      <div><span class="label">Now Viewing</span><span id="eraLabel" style="font-weight:600;"></span></div>
+      <div><span class="label">Dated</span><span id="eraYears"></span></div>
+      <div>🏛️ <span class="label">Land Ruled By</span><span id="territoryLabel" style="font-weight:600;"></span></div>
+    </div>
+  </header>
+
+  <main>
+    <div id="mapwrap">
+      <div id="map"></div>
+      <div class="era-badge"><span class="era-dot" id="eraBadgeDot"></span><span id="eraBadgeLabel"></span></div>
+      <div class="map-credit">Map data © OpenStreetMap contributors</div>
+    </div>
+
+    <div id="panel">
+      <span class="panel-tag" id="panelTag"></span>
+      <h2 id="cityName"></h2>
+      <p class="country" id="cityCountry"></p>
+      <div class="stat-row">
+        <div><div class="k">Dated</div><div class="v" id="statYears"></div></div>
+        <div><div class="k">Reference</div><div class="v" id="statRef"></div></div>
+      </div>
+      <hr/>
+      <p class="summary" id="summary"></p>
+      <hr/>
+      <div class="territory-line">Land at this time: <b id="territoryLine"></b></div>
+      <div class="nav-row">
+        <button class="navbtn" id="prevBtn">‹ Prev</button>
+        <span class="stepcount" id="stepCount"></span>
+        <button class="navbtn" id="nextBtn">Next ›</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="transport">
+      <button id="playbtn" aria-label="Play">▶</button>
+      <button id="speedbtn">⏱ 1x</button>
+      <div class="slider-wrap">
+        <input type="range" id="slider" min="0" value="0" />
+        <div class="ticks" id="ticks"></div>
+      </div>
+      <div class="year-badge">⚓ <span id="yearBadge"></span></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ */
+/* CITIES — real world lat/lng                                        */
+/* ------------------------------------------------------------------ */
+const CITY = {
+  ur:            { name:"Ur", country:"Iraq", lat:30.9636, lng:46.1043, offmap:false },
+  haran:         { name:"Haran", country:"Turkey", lat:36.8667, lng:39.0333 },
+  shechem:       { name:"Shechem", country:"West Bank", lat:32.2211, lng:35.2544 },
+  bethel:        { name:"Bethel", country:"West Bank", lat:31.9307, lng:35.2286 },
+  egyptGoshen:   { name:"Goshen", country:"Egypt", lat:30.7000, lng:31.6000 },
+  hebron:        { name:"Hebron", country:"West Bank", lat:31.5326, lng:35.0998 },
+  rameses:       { name:"Rameses", country:"Egypt", lat:30.8000, lng:31.8300 },
+  redSea:        { name:"Red Sea Crossing", country:"Egypt", lat:29.9700, lng:32.5500 },
+  mtSinai:       { name:"Mount Sinai", country:"Egypt", lat:28.5392, lng:33.9734 },
+  kadeshBarnea:  { name:"Kadesh Barnea", country:"Sinai", lat:30.6867, lng:34.4747 },
+  mtHor:         { name:"Mount Hor", country:"Edom", lat:30.3225, lng:35.4022 },
+  moab:          { name:"Plains of Moab", country:"Jordan", lat:31.7000, lng:35.7500 },
+  jericho:       { name:"Jericho", country:"West Bank", lat:31.8667, lng:35.4667 },
+  nineveh:       { name:"Nineveh", country:"Iraq", lat:36.3600, lng:43.1500 },
+  samaria:       { name:"Samaria", country:"West Bank", lat:32.2769, lng:35.1900 },
+  babylon:       { name:"Babylon", country:"Iraq", lat:32.5364, lng:44.4200 },
+  issus:         { name:"Issus", country:"Turkey", lat:36.5833, lng:36.1667 },
+  modein:        { name:"Modein", country:"Israel", lat:31.9314, lng:34.9903 },
+  jerusalem:     { name:"Jerusalem", country:"Israel", lat:31.7683, lng:35.2137 },
+  antiochSyria:  { name:"Antioch", country:"Syria/Turkey", lat:36.2021, lng:36.1603 },
+  seleucia:      { name:"Seleucia", country:"Syria/Turkey", lat:36.1167, lng:35.9333 },
+  salamis:       { name:"Salamis", country:"Cyprus", lat:35.1833, lng:33.9000 },
+  paphos:        { name:"Paphos", country:"Cyprus", lat:34.7571, lng:32.4066 },
+  perga:         { name:"Perga", country:"Turkey", lat:36.9611, lng:30.8494 },
+  antiochPisidia:{ name:"Antioch (Pisidian)", country:"Turkey", lat:38.3057, lng:31.1907 },
+  iconium:       { name:"Iconium", country:"Turkey", lat:37.8746, lng:32.4932 },
+  lystra:        { name:"Lystra", country:"Turkey", lat:37.5814, lng:32.4522 },
+  derbe:         { name:"Derbe", country:"Turkey", lat:37.3487, lng:33.2467 },
+  attalia:       { name:"Attalia", country:"Turkey", lat:36.8969, lng:30.7133 },
+  troas:         { name:"Troas", country:"Turkey", lat:39.7556, lng:26.1600 },
+  philippi:      { name:"Philippi", country:"Greece", lat:41.0122, lng:24.2872 },
+  thessalonica:  { name:"Thessalonica", country:"Greece", lat:40.6401, lng:22.9444 },
+  berea:         { name:"Berea", country:"Greece", lat:40.5236, lng:22.2033 },
+  athens:        { name:"Athens", country:"Greece", lat:37.9838, lng:23.7275 },
+  corinth:       { name:"Corinth", country:"Greece", lat:37.9061, lng:22.8781 },
+  ephesus:       { name:"Ephesus", country:"Turkey", lat:37.9495, lng:27.3639 },
+  miletus:       { name:"Miletus", country:"Turkey", lat:37.5297, lng:27.2775 },
+  caesarea:      { name:"Caesarea", country:"Israel", lat:32.5000, lng:34.8919 },
+  tyre:          { name:"Tyre", country:"Lebanon", lat:33.2704, lng:35.2038 },
+  ptolemais:     { name:"Ptolemais", country:"Israel", lat:32.9281, lng:35.0819 },
+};
+
+const ERA_META = {
+  abraham:     { label:"Abraham's Journey", color:"#B08D57", years:"c. 2091–2017 BC" },
+  exodus:      { label:"The Exodus", color:"#4F86C6", years:"c. 1446–1406 BC" },
+  assyria:     { label:"Assyrian Conquest", color:"#B5442E", years:"732–722 BC" },
+  babylonEra:  { label:"Babylonian Conquest", color:"#6A4C93", years:"605–586 BC" },
+  persia:      { label:"Persian Period", color:"#8FBF3F", years:"539–516 BC" },
+  hellenistic: { label:"Greek & Hasmonean Era", color:"#5B7B9A", years:"332–164 BC" },
+  roman:       { label:"Roman Conquest", color:"#7A1F2B", years:"63 BC" },
+  paul1:       { label:"Paul's Journey I", color:"#E0562E", years:"AD 46–48" },
+  paul2:       { label:"Paul's Journey II", color:"#2FD4C4", years:"AD 49–52" },
+  paul3:       { label:"Paul's Journey III", color:"#F2C230", years:"AD 53–57" },
+};
+const ERA_ORDER = ["abraham","exodus","assyria","babylonEra","persia","hellenistic","roman","paul1","paul2","paul3"];
+
+const TERRITORY_ERAS = [
+  { start:-2100, end:-1406, label:"Canaanite City-States", color:"#8A9A5B" },
+  { start:-1406, end:-1050, label:"Israelite Conquest & Judges", color:"#4F86C6" },
+  { start:-1050, end:-930,  label:"United Monarchy of Israel", color:"#3D6E4F" },
+  { start:-930,  end:-722,  label:"Divided Kingdoms: Israel & Judah", color:"#5B8C5A" },
+  { start:-722,  end:-605,  label:"Assyrian Empire", color:"#B5442E" },
+  { start:-605,  end:-539,  label:"Neo-Babylonian Empire", color:"#6A4C93" },
+  { start:-539,  end:-332,  label:"Persian (Achaemenid) Empire", color:"#8FBF3F" },
+  { start:-332,  end:-63,   label:"Hellenistic Kingdoms / Hasmonean Judea", color:"#5B7B9A" },
+  { start:-63,   end:100,   label:"Roman Empire", color:"#7A1F2B" },
+];
+function getTerritoryForYear(y){ return TERRITORY_ERAS.find(t=>y>=t.start && y<t.end) || TERRITORY_ERAS[0]; }
+function yearLabel(y){ return y<0 ? `${Math.abs(y)} BC` : `AD ${y}`; }
+
+/* ------------------------------------------------------------------ */
+/* MASTER STOPS                                                       */
+/* ------------------------------------------------------------------ */
+const STOPS = [
+  {era:"abraham",step:1,city:CITY.ur,year:-2091,years:"c. 2091 BC",ref:"Genesis 11:31",summary:"Abram's family sets out from Ur of the Chaldeans toward Canaan."},
+  {era:"abraham",step:2,city:CITY.haran,year:-2026,years:"c. 2026 BC",ref:"Genesis 11:31–12:4",summary:"The family settles in Haran until Terah's death; there the LORD calls Abram to leave his country for a land He will show him."},
+  {era:"abraham",step:3,city:CITY.shechem,year:-2020,years:"c. 2020 BC",ref:"Genesis 12:6-7",summary:"Abram arrives in Canaan and camps at Shechem, where the LORD first promises this land to his offspring."},
+  {era:"abraham",step:4,city:CITY.bethel,year:-2020,years:"c. 2020 BC",ref:"Genesis 12:8",summary:"Abram pitches his tent between Bethel and Ai, builds an altar, and calls on the name of the LORD."},
+  {era:"abraham",step:5,city:CITY.egyptGoshen,year:-2019,years:"c. 2019 BC",ref:"Genesis 12:10-20",summary:"A severe famine drives Abram to Egypt, where fear leads him to pass off Sarai as his sister before Pharaoh sends them away."},
+  {era:"abraham",step:6,city:CITY.bethel,year:-2018,years:"c. 2018 BC",ref:"Genesis 13:1-4",summary:"Abram returns from Egypt to the same altar at Bethel, and he and Lot part ways as their combined flocks outgrow the land."},
+  {era:"abraham",step:7,city:CITY.hebron,year:-2017,years:"c. 2017 BC",ref:"Genesis 13:18",summary:"Abram moves his tents to the oaks of Mamre near Hebron and builds an altar — the place that becomes his family's burial ground."},
+
+  {era:"exodus",step:1,city:CITY.rameses,year:-1446,years:"c. 1446 BC",ref:"Exodus 12:37",summary:"Roughly 600,000 men, plus women and children, leave Rameses in Egypt on the night of the first Passover, after four centuries of bondage."},
+  {era:"exodus",step:2,city:CITY.redSea,year:-1446,years:"c. 1446 BC",ref:"Exodus 14:21-31",summary:"With Pharaoh's army closing in, the LORD parts the sea and Israel crosses on dry ground; the pursuing Egyptians are drowned."},
+  {era:"exodus",step:3,city:CITY.mtSinai,year:-1445,years:"c. 1445 BC",ref:"Exodus 19:1-6; 20:1-17",summary:"Israel camps at Sinai for about a year; the LORD gives the Ten Commandments and the covenant law, and the tabernacle is built."},
+  {era:"exodus",step:4,city:CITY.kadeshBarnea,year:-1444,years:"c. 1444 BC",ref:"Numbers 13-14",summary:"Twelve spies scout Canaan from Kadesh; ten bring back a fearful report, and Israel's unbelief costs the nation forty years of wandering."},
+  {era:"exodus",step:5,city:CITY.mtHor,year:-1407,years:"c. 1407 BC",ref:"Numbers 20:22-29",summary:"Near the end of the wilderness years, Aaron the high priest dies on Mount Hor and his son Eleazar succeeds him."},
+  {era:"exodus",step:6,city:CITY.moab,year:-1406,years:"c. 1406 BC",ref:"Deuteronomy 34:1-8",summary:"Moses views the promised land from Nebo and dies within sight of it; Joshua is commissioned to lead Israel across the Jordan."},
+  {era:"exodus",step:7,city:CITY.jericho,year:-1406,years:"c. 1406 BC",ref:"Joshua 6:1-20",summary:"Israel crosses the Jordan into Canaan, and Jericho's walls fall after seven days of marching around the city, opening the conquest."},
+
+  {era:"assyria",step:1,city:CITY.nineveh,year:-732,years:"732 BC",ref:"2 Kings 15:29",summary:"From his capital at Nineveh, Tiglath-Pileser III begins stripping away Israel's territory and deporting its people."},
+  {era:"assyria",step:2,city:CITY.samaria,year:-722,years:"722 BC",ref:"2 Kings 17:5-6, 24",summary:"After a three-year siege, Samaria falls to Assyria; Israel's population is exiled and foreign peoples are resettled in the land."},
+
+  {era:"babylonEra",step:1,city:CITY.babylon,year:-605,years:"605 BC",ref:"2 Kings 24:1; Daniel 1:1-2",summary:"Nebuchadnezzar's rising Neo-Babylonian Empire begins campaigns against Judah, carrying off its first captives, including Daniel."},
+  {era:"babylonEra",step:2,city:CITY.jerusalem,year:-586,years:"586 BC",ref:"2 Kings 25:8-10",summary:"After a long siege, Nebuchadnezzar's army breaches Jerusalem, burns the Temple, and deports most of Judah's population to Babylon."},
+
+  {era:"persia",step:1,city:CITY.babylon,year:-539,years:"539 BC",ref:"Daniel 5:30-31",summary:"Babylon falls overnight to Cyrus the Great's Medo-Persian forces, fulfilling Daniel's warning to Belshazzar."},
+  {era:"persia",step:2,city:CITY.jerusalem,year:-516,years:"516 BC",ref:"Ezra 1:1-4; 6:14-15",summary:"Cyrus's decree lets the exiles return; after years of delay, the Second Temple is finally completed under Persian rule."},
+
+  {era:"hellenistic",step:1,city:CITY.issus,year:-332,years:"332 BC",ref:"Daniel 8:5-7, 20-21",summary:"Alexander the Great shatters Persian power at Issus, echoing Daniel's vision of a swift Greek conqueror; the Levant passes to Greek control."},
+  {era:"hellenistic",step:2,city:CITY.modein,year:-167,years:"167 BC",ref:"1 Maccabees 2:1, 15-28",summary:"When Seleucid officers demand pagan sacrifice, the priest Mattathias refuses and sparks the Maccabean revolt at Modein."},
+  {era:"hellenistic",step:3,city:CITY.jerusalem,year:-164,years:"164 BC",ref:"1 Maccabees 4:36-59",summary:"Judas Maccabeus recaptures Jerusalem and rededicates the desecrated Temple — the origin of Hanukkah — winning a Hasmonean kingdom."},
+
+  {era:"roman",step:1,city:CITY.jerusalem,year:-63,years:"63 BC",ref:"Josephus, Antiquities 14.4",summary:"Roman general Pompey intervenes in a Hasmonean succession dispute and takes Jerusalem, bringing Judea under Roman control."},
+
+  {era:"paul1",step:1,city:CITY.antiochSyria,year:46,years:"AD 46",ref:"Acts 13:1-3",summary:"The church at Antioch fasts and prays, then sends Barnabas and Saul out under the Holy Spirit's commission."},
+  {era:"paul1",step:2,city:CITY.seleucia,year:46,years:"AD 46",ref:"Acts 13:4",summary:"The pair travel down to the port of Seleucia and set sail for the island of Cyprus."},
+  {era:"paul1",step:3,city:CITY.salamis,year:46,years:"AD 46",ref:"Acts 13:5",summary:"Landing at Salamis, they proclaim the word of God in the Jewish synagogues, with John Mark assisting them."},
+  {era:"paul1",step:4,city:CITY.paphos,year:46,years:"AD 46",ref:"Acts 13:6-12",summary:"Paul confronts the sorcerer Elymas and strikes him blind; the Roman proconsul Sergius Paulus believes, astonished at the teaching."},
+  {era:"paul1",step:5,city:CITY.perga,year:47,years:"AD 46-47",ref:"Acts 13:13",summary:"Crossing to the mainland at Perga in Pamphylia, John Mark departs the mission and returns to Jerusalem."},
+  {era:"paul1",step:6,city:CITY.antiochPisidia,year:47,years:"AD 47",ref:"Acts 13:14-52",summary:"Paul's synagogue sermon draws a huge crowd the next Sabbath; jealous opponents stir up persecution and expel the missionaries."},
+  {era:"paul1",step:7,city:CITY.iconium,year:47,years:"AD 47",ref:"Acts 14:1-6",summary:"A great number believe, but the city divides and a plot to stone them forces Paul and Barnabas to flee."},
+  {era:"paul1",step:8,city:CITY.lystra,year:47,years:"AD 47",ref:"Acts 14:8-20",summary:"Paul heals a man lame from birth; the crowd hails them as gods, then is incited to stone Paul, leaving him for dead outside the city."},
+  {era:"paul1",step:9,city:CITY.derbe,year:47,years:"AD 47",ref:"Acts 14:20-21",summary:"Paul and Barnabas preach the gospel and make many disciples in relative peace."},
+  {era:"paul1",step:10,city:CITY.antiochSyria,year:48,years:"AD 48",ref:"Acts 14:21-28",summary:"Retracing their steps through Lystra, Iconium, and Pisidian Antioch to strengthen the new churches, they sail home from Attalia to report all God had done."},
+
+  {era:"paul2",step:1,city:CITY.antiochSyria,year:49,years:"AD 49",ref:"Acts 15:36-41",summary:"After the Jerusalem Council, Paul sets out again; a sharp dispute over John Mark splits Paul from Barnabas, and Paul chooses Silas as his companion."},
+  {era:"paul2",step:2,city:CITY.derbe,year:49,years:"AD 49",ref:"Acts 16:1",summary:"Passing again through Syria and Cilicia, Paul strengthens the churches on his way to Derbe and Lystra."},
+  {era:"paul2",step:3,city:CITY.lystra,year:49,years:"AD 49",ref:"Acts 16:1-5",summary:"Paul meets the young disciple Timothy, has him circumcised for the sake of the Jews, and adds him to the missionary band."},
+  {era:"paul2",step:4,city:CITY.troas,year:49,years:"AD 49",ref:"Acts 16:8-10",summary:"Forbidden by the Spirit to enter Asia or Bithynia, Paul receives a night vision of a Macedonian man pleading, 'Come over and help us.'"},
+  {era:"paul2",step:5,city:CITY.philippi,year:50,years:"AD 49-50",ref:"Acts 16:11-40",summary:"Lydia the purple-cloth dealer is converted at the riverside; after Paul exorcises a slave girl, he and Silas are flogged and jailed, then freed by an earthquake."},
+  {era:"paul2",step:6,city:CITY.thessalonica,year:50,years:"AD 50",ref:"Acts 17:1-9",summary:"Paul reasons from the Scriptures in the synagogue for three Sabbaths; jealous opponents form a mob and drag believers before the city officials."},
+  {era:"paul2",step:7,city:CITY.berea,year:50,years:"AD 50",ref:"Acts 17:10-14",summary:"The Berean Jews are commended as noble-minded, examining the Scriptures daily to test Paul's message, until agitators arrive from Thessalonica."},
+  {era:"paul2",step:8,city:CITY.athens,year:50,years:"AD 50",ref:"Acts 17:16-34",summary:"Distressed by the city's idols, Paul addresses the philosophers at the Areopagus, proclaiming the 'unknown god' as the one true Creator."},
+  {era:"paul2",step:9,city:CITY.corinth,year:51,years:"AD 50-52",ref:"Acts 18:1-17",summary:"Paul settles for eighteen months, partners with tentmakers Aquila and Priscilla, and is brought before proconsul Gallio, who dismisses the charges against him."},
+  {era:"paul2",step:10,city:CITY.ephesus,year:52,years:"AD 52",ref:"Acts 18:18-21",summary:"Paul stops briefly, reasons in the synagogue, and promises to return if God wills, leaving Priscilla and Aquila behind."},
+  {era:"paul2",step:11,city:CITY.caesarea,year:52,years:"AD 52",ref:"Acts 18:22",summary:"Paul lands at Caesarea, goes up to greet the church at Jerusalem, then returns north to Antioch, closing the second journey."},
+
+  {era:"paul3",step:1,city:CITY.antiochSyria,year:53,years:"AD 53",ref:"Acts 18:23",summary:"Paul departs from Antioch once more, traveling through Galatia and Phrygia strengthening every disciple along the way."},
+  {era:"paul3",step:2,city:CITY.ephesus,year:55,years:"AD 53-56",ref:"Acts 19:1-41",summary:"Over roughly three years Paul teaches daily in the hall of Tyrannus; extraordinary miracles occur, and a riot erupts led by the silversmith Demetrius, whose idol trade is threatened."},
+  {era:"paul3",step:3,city:CITY.philippi,year:56,years:"AD 56",ref:"Acts 20:1-2",summary:"Paul travels through Macedonia, encouraging the churches at Philippi and Thessalonica with many words of comfort."},
+  {era:"paul3",step:4,city:CITY.corinth,year:56,years:"AD 56-57",ref:"Acts 20:2-3",summary:"Paul spends three months in Greece, likely writing his letter to the Romans, before a plot against him alters his travel plans."},
+  {era:"paul3",step:5,city:CITY.troas,year:57,years:"AD 57",ref:"Acts 20:6-12",summary:"During an all-night sermon, young Eutychus falls asleep, tumbles from a third-story window, and is raised back to life by Paul."},
+  {era:"paul3",step:6,city:CITY.miletus,year:57,years:"AD 57",ref:"Acts 20:17-38",summary:"Paul summons the Ephesian elders for an emotional farewell, warning of coming hardship and 'savage wolves' who will rise from among them."},
+  {era:"paul3",step:7,city:CITY.tyre,year:57,years:"AD 57",ref:"Acts 21:3-6",summary:"Disciples at Tyre, prompted by the Spirit, urge Paul not to go on to Jerusalem, foreseeing what awaits him."},
+  {era:"paul3",step:8,city:CITY.ptolemais,year:57,years:"AD 57",ref:"Acts 21:7",summary:"Paul greets the brothers at Ptolemais and stays with them a single day before continuing south."},
+  {era:"paul3",step:9,city:CITY.caesarea,year:57,years:"AD 57",ref:"Acts 21:8-14",summary:"The prophet Agabus binds his own hands and feet with Paul's belt, foretelling his arrest; Paul declares himself ready even to die in Jerusalem."},
+  {era:"paul3",step:10,city:CITY.jerusalem,year:57,years:"AD 57",ref:"Acts 21:15-17",summary:"Paul arrives in Jerusalem and is warmly received by the brothers, on the eve of the arrest that will lead him to Rome."},
+];
+
+/* ------------------------------------------------------------------ */
+/* MAP SETUP                                                          */
+/* ------------------------------------------------------------------ */
+const map = L.map('map', { zoomControl:true, worldCopyJump:true }).setView([33.5, 34], 6);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution:'&copy; OpenStreetMap &copy; CARTO',
+  maxZoom:18
+}).addTo(map);
+
+// A rough polygon over the land of Israel/Judah for the territory tint
+const israelPoly = L.polygon([
+  [33.27,35.10],[33.09,35.60],[32.60,35.75],[31.90,35.75],[31.30,35.45],
+  [31.20,34.95],[31.55,34.55],[32.05,34.75],[32.55,34.90],[33.0,34.95]
+], { color:"#00000000", weight:0, fillOpacity:0.4 }).addTo(map);
+
+let markers = [];
+let routeLine = null;
+
+function makeIcon(color, active, offmap){
+  const size = active ? 22 : 14;
+  const html = offmap
+    ? `<div style="width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:12px solid ${color};filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));"></div>`
+    : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2.5px solid #2B2418;box-shadow:0 1px 4px rgba(0,0,0,.5);${active?'animation:pulse 1.8s infinite;':''}"></div>`;
+  return L.divIcon({ html, className:'', iconSize:[size,size], iconAnchor:[size/2,size/2] });
+}
+
+const pulseStyle = document.createElement('style');
+pulseStyle.textContent = `@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.35);}70%{box-shadow:0 0 0 10px rgba(0,0,0,0);}100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}}`;
+document.head.appendChild(pulseStyle);
+
+/* ------------------------------------------------------------------ */
+/* STATE                                                              */
+/* ------------------------------------------------------------------ */
+let stepIndex = 24; // start at Paul's Journey I
+let isPlaying = false;
+let speed = 1;
+let playTimer = null;
+
+const chipsEl = document.getElementById('chips');
+ERA_ORDER.forEach(key => {
+  const m = ERA_META[key];
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.textContent = m.label.replace("Paul's Journey","Paul").replace("'s ", " ");
+  b.dataset.era = key;
+  b.onclick = () => { jumpToEra(key); };
+  chipsEl.appendChild(b);
+});
+
+function jumpToEra(eraKey){
+  const idx = STOPS.findIndex(s => s.era === eraKey);
+  if (idx >= 0){ goTo(idx); setPlaying(false); }
+}
+
+function currentEraStops(era){
+  return STOPS.map((s,i)=>({...s, globalIndex:i})).filter(s=>s.era===era);
+}
+
+function goTo(idx){
+  stepIndex = Math.max(0, Math.min(STOPS.length-1, idx));
+  render();
+}
+
+function setPlaying(val){
+  isPlaying = val;
+  document.getElementById('playbtn').textContent = isPlaying ? '❚❚' : '▶';
+  clearInterval(playTimer);
+  if (isPlaying){
+    playTimer = setInterval(()=>{
+      if (stepIndex >= STOPS.length-1){ setPlaying(false); return; }
+      goTo(stepIndex+1);
+    }, 1500/speed);
+  }
+}
+
+document.getElementById('playbtn').onclick = () => {
+  if (stepIndex === STOPS.length-1){ goTo(0); setPlaying(true); }
+  else setPlaying(!isPlaying);
+};
+document.getElementById('speedbtn').onclick = () => {
+  speed = speed === 1 ? 2 : 1;
+  document.getElementById('speedbtn').textContent = `⏱ ${speed}x`;
+  if (isPlaying) setPlaying(true);
+};
+document.getElementById('prevBtn').onclick = () => { goTo(stepIndex-1); setPlaying(false); };
+document.getElementById('nextBtn').onclick = () => { goTo(stepIndex+1); setPlaying(false); };
+
+const slider = document.getElementById('slider');
+slider.max = STOPS.length - 1;
+slider.oninput = (e) => { goTo(Number(e.target.value)); setPlaying(false); };
+
+// build ticks
+const ticksEl = document.getElementById('ticks');
+STOPS.forEach((s, idx) => {
+  const t = document.createElement('div');
+  t.className = 'tick';
+  t.style.left = `${(idx/(STOPS.length-1))*100}%`;
+  t.style.background = ERA_META[s.era].color;
+  t.dataset.idx = idx;
+  t.onclick = () => { goTo(idx); setPlaying(false); };
+  ticksEl.appendChild(t);
+});
+
+function render(){
+  const stop = STOPS[stepIndex];
+  const era = stop.era;
+  const meta = ERA_META[era];
+  const territory = getTerritoryForYear(stop.year);
+  const eraStops = currentEraStops(era);
+  const localIndex = eraStops.findIndex(s => s.globalIndex === stepIndex);
+
+  // header
+  document.getElementById('eraLabel').textContent = meta.label;
+  document.getElementById('eraLabel').style.color = meta.color;
+  document.getElementById('eraYears').textContent = meta.years;
+  document.getElementById('territoryLabel').textContent = territory.label;
+  document.getElementById('territoryLabel').style.color = territory.color;
+  document.getElementById('eraBadgeDot').style.background = meta.color;
+  document.getElementById('eraBadgeLabel').textContent = meta.label;
+
+  // chips
+  document.querySelectorAll('.chip').forEach(c => {
+    const active = c.dataset.era === era;
+    c.classList.toggle('active', active);
+    c.style.background = active ? meta.color : 'transparent';
+    c.style.borderColor = active ? meta.color : (ERA_META[c.dataset.era].color + '80');
+  });
+
+  // panel
+  document.getElementById('panelTag').textContent = `${meta.label} · Stop ${stop.step}`;
+  document.getElementById('panelTag').style.background = meta.color;
+  document.getElementById('cityName').textContent = stop.city.name + (stop.city.offmap ? ' (off map)' : '');
+  document.getElementById('cityCountry').textContent = stop.city.country;
+  document.getElementById('statYears').textContent = stop.years;
+  document.getElementById('statRef').textContent = stop.ref;
+  document.getElementById('summary').textContent = stop.summary;
+  document.getElementById('territoryLine').textContent = territory.label;
+  document.getElementById('territoryLine').style.color = territory.color;
+  document.getElementById('stepCount').textContent = `${stepIndex+1} / ${STOPS.length}`;
+  document.getElementById('prevBtn').disabled = stepIndex === 0;
+  document.getElementById('nextBtn').disabled = stepIndex === STOPS.length-1;
+  document.getElementById('yearBadge').textContent = yearLabel(stop.year);
+
+  // slider + ticks
+  slider.value = stepIndex;
+  document.querySelectorAll('.tick').forEach(t => t.classList.toggle('on', Number(t.dataset.idx) === stepIndex));
+
+  // territory tint
+  israelPoly.setStyle({ fillColor: territory.color, fillOpacity: 0.38 });
+
+  // markers + route for current era
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+
+  const latlngs = [];
+  eraStops.forEach((s, idx) => {
+    const active = idx === localIndex;
+    const past = idx <= localIndex;
+    const color = past ? meta.color : '#B0A489';
+    const icon = makeIcon(color, active, s.city.offmap);
+    const mk = L.marker([s.city.lat, s.city.lng], { icon }).addTo(map);
+    mk.bindTooltip(`${s.step}. ${s.city.name}`, { permanent:false, direction:'top', className:'pin-label' });
+    mk.on('click', () => { goTo(s.globalIndex); setPlaying(false); });
+    markers.push(mk);
+    latlngs.push([s.city.lat, s.city.lng]);
+  });
+
+  if (localIndex > 0){
+    routeLine = L.polyline(latlngs.slice(0, localIndex+1), {
+      color: meta.color, weight:3.5, dashArray:'8 7', opacity:0.9
+    }).addTo(map);
+  }
+
+  // pan/zoom to fit the active era's revealed route without being jarring
+  if (latlngs.length){
+    const bounds = L.latLngBounds(latlngs.slice(0, Math.max(localIndex+1,1)));
+    map.flyToBounds(bounds.pad(0.5), { duration:0.6, maxZoom:7 });
+  }
+}
+
+render();
+</script>
+</body>
+</html>
