@@ -92,7 +92,7 @@
     <div id="mapwrap">
       <div id="map"></div>
       <div class="era-badge"><span class="era-dot" id="eraBadgeDot"></span><span id="eraBadgeLabel"></span></div>
-      <div class="map-credit">Map data © OpenStreetMap contributors</div>
+      <div class="map-credit">Map data © Esri, USGS, NAVTEQ</div>
       <div style="position:absolute;top:12px;left:12px;z-index:500;background:rgba(237,228,211,.92);border:1px solid rgba(90,75,50,.3);border-radius:5px;padding:5px 10px;font-size:10.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;">
         <span style="width:11px;height:11px;border-radius:50%;border:1.5px dashed var(--ink-soft);display:inline-block;flex-shrink:0;"></span>
         dashed ring = traditional/approximate site
@@ -450,8 +450,8 @@ const STOPS = [
 /* MAP SETUP                                                          */
 /* ------------------------------------------------------------------ */
 const map = L.map('map', { zoomControl:true, worldCopyJump:true }).setView([33.5, 34], 6);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution:'&copy; OpenStreetMap contributors',
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution:'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom',
   maxZoom:19
 }).addTo(map);
 
