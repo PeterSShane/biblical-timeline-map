@@ -93,12 +93,17 @@
       <div id="map"></div>
       <div class="era-badge"><span class="era-dot" id="eraBadgeDot"></span><span id="eraBadgeLabel"></span></div>
       <div class="map-credit">Map data © OpenStreetMap contributors</div>
+      <div style="position:absolute;top:12px;left:12px;z-index:500;background:rgba(237,228,211,.92);border:1px solid rgba(90,75,50,.3);border-radius:5px;padding:5px 10px;font-size:10.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;">
+        <span style="width:11px;height:11px;border-radius:50%;border:1.5px dashed var(--ink-soft);display:inline-block;flex-shrink:0;"></span>
+        dashed ring = traditional/approximate site
+      </div>
     </div>
 
     <div id="panel">
       <span class="panel-tag" id="panelTag"></span>
       <h2 id="cityName"></h2>
       <p class="country" id="cityCountry"></p>
+      <p id="locationNote" style="display:none;font-family:'Inter',sans-serif;font-size:11.5px;line-height:1.5;color:var(--gold);background:rgba(138,109,63,.1);border-left:2px solid var(--gold);padding:6px 9px;border-radius:2px;margin:-2px 0 10px;"></p>
       <div class="stat-row">
         <div><div class="k">Dated</div><div class="v" id="statYears"></div></div>
         <div><div class="k">Reference</div><div class="v" id="statRef"></div></div>
@@ -140,10 +145,10 @@ const CITY = {
   egyptGoshen:   { name:"Goshen", country:"Egypt", lat:30.7000, lng:31.6000 },
   hebron:        { name:"Hebron", country:"West Bank", lat:31.5326, lng:35.0998 },
   rameses:       { name:"Rameses", country:"Egypt", lat:30.8000, lng:31.8300 },
-  redSea:        { name:"Red Sea Crossing", country:"Egypt", lat:29.9700, lng:32.5500 },
-  mtSinai:       { name:"Mount Sinai", country:"Egypt", lat:28.5392, lng:33.9734 },
+  redSea:        { name:"Red Sea Crossing", country:"Egypt", lat:29.9700, lng:32.5500, traditional:true, note:"Genuinely disputed among scholars — candidates range from marshy lakes in the Nile Delta to the Gulf of Aqaba, over 250 miles apart. This pin follows the traditional Gulf of Suez view." },
+  mtSinai:       { name:"Mount Sinai", country:"Egypt", lat:28.5392, lng:33.9734, traditional:true, note:"Scripture never names which mountain. This is the traditional site (Jebel Musa), identified by 4th-century Christian monks — Saudi Arabia and other peaks remain live scholarly candidates." },
   kadeshBarnea:  { name:"Kadesh Barnea", country:"Sinai", lat:30.6867, lng:34.4747 },
-  mtHor:         { name:"Mount Hor", country:"Edom", lat:30.3225, lng:35.4022 },
+  mtHor:         { name:"Mount Hor", country:"Edom", lat:30.3225, lng:35.4022, traditional:true, note:"Josephus and later Christian tradition placed this at Jebel Harun near Petra (used for this pin), but some scholars argue the biblical itinerary fits better with a peak near Kadesh Barnea instead." },
   moab:          { name:"Plains of Moab", country:"Jordan", lat:31.7000, lng:35.7500 },
   jericho:       { name:"Jericho", country:"West Bank", lat:31.8667, lng:35.4667 },
   nineveh:       { name:"Nineveh", country:"Iraq", lat:36.3600, lng:43.1500 },
@@ -179,6 +184,8 @@ const CITY = {
   enGedi:        { name:"En Gedi", country:"Israel", lat:31.4618, lng:35.3919 },
   ziklag:        { name:"Ziklag", country:"Israel", lat:31.3833, lng:34.6833 },
   gibeon:        { name:"Gibeon", country:"West Bank", lat:31.8497, lng:35.1919 },
+  dan:           { name:"Dan", country:"Israel", lat:33.2489, lng:35.6519 },
+  lachish:       { name:"Lachish", country:"Israel", lat:31.5651, lng:34.8481 },
 
   nazareth:      { name:"Nazareth", country:"Israel", lat:32.7018, lng:35.2983 },
   jordanBaptism: { name:"Bethany Beyond the Jordan", country:"Jordan", lat:31.8383, lng:35.5372 },
@@ -189,7 +196,7 @@ const CITY = {
   caesareaPhilippi:{ name:"Caesarea Philippi", country:"Israel", lat:33.2494, lng:35.6942 },
   mtTabor:       { name:"Mount Tabor", country:"Israel", lat:32.6866, lng:35.3919 },
   bethanyLazarus:{ name:"Bethany", country:"West Bank", lat:31.7714, lng:35.2556 },
-  emmaus:        { name:"Emmaus", country:"Israel", lat:31.8386, lng:34.9928 },
+  emmaus:        { name:"Emmaus", country:"Israel", lat:31.8386, lng:34.9928, traditional:true, note:"At least four sites compete for this identification (Nicopolis, Abu Ghosh, el-Qubeibeh, and Motza), each with real problems fitting Luke's stated distance. This pin uses Emmaus Nicopolis, the earliest-attested tradition." },
 
   sidon:         { name:"Sidon", country:"Lebanon", lat:33.5571, lng:35.3729 },
   myra:          { name:"Myra", country:"Turkey", lat:36.2508, lng:29.9903 },
@@ -201,19 +208,19 @@ const CITY = {
   appiiForum:    { name:"Appii Forum", country:"Italy", lat:41.4667, lng:12.8667 },
   rome:          { name:"Rome", country:"Italy", lat:41.9028, lng:12.4964 },
 
-  edenCity:      { name:"Eden", country:"Iraq (traditional)", lat:30.5852, lng:47.8163 },
-  ararat:        { name:"Mount Ararat", country:"Turkey", lat:39.7019, lng:44.2983 },
+  edenCity:      { name:"Eden", country:"Iraq (traditional)", lat:30.5852, lng:47.8163, traditional:true, note:"Genesis names four rivers, but only the Tigris and Euphrates are identifiable today. Most scholars doubt Eden had one findable spot — this pin reflects the common Mesopotamian hypothesis." },
+  ararat:        { name:"Mount Ararat", country:"Turkey", lat:39.7019, lng:44.2983, traditional:true, note:"Genesis says the ark rested on 'the mountains of Ararat' — a whole region, not one peak. This pin follows the commonly known Turkish mountain, a medieval identification with no confirming archaeology." },
 
   beersheba:     { name:"Beersheba", country:"Israel", lat:31.2530, lng:34.7915 },
-  peniel:        { name:"Peniel", country:"Jordan", lat:32.1500, lng:35.7500 },
+  peniel:        { name:"Peniel", country:"Jordan", lat:32.2190, lng:35.6460, traditional:true, note:"No inscription confirms the site. This pin follows Tulul adh-Dhahab, the leading modern candidate at the Jabbok ford, though it remains an identification, not a certainty." },
   dothan:        { name:"Dothan", country:"West Bank", lat:32.4167, lng:35.2667 },
   egyptMemphis:  { name:"Memphis", country:"Egypt", lat:29.8442, lng:31.2119 },
 
-  ophrah:        { name:"Ophrah", country:"Israel", lat:32.5833, lng:35.3167 },
+  ophrah:        { name:"Ophrah", country:"Israel", lat:32.5833, lng:35.3167, traditional:true, note:"Bible reference works describe this identification as genuinely uncertain. This pin follows the common placement near Mount Tabor and the Jezreel Valley, close to where Gideon fought Midian." },
   timnah:        { name:"Timnah", country:"Israel", lat:31.7833, lng:34.8500 },
   gazaCity:      { name:"Gaza", country:"Palestine", lat:31.5017, lng:34.4668 },
   shiloh:        { name:"Shiloh", country:"West Bank", lat:32.0553, lng:35.2897 },
-  mizpah:        { name:"Mizpah", country:"West Bank", lat:31.8697, lng:35.1789 },
+  mizpah:        { name:"Mizpah", country:"West Bank", lat:31.8851, lng:35.2164, traditional:true, note:"Scholars are genuinely split between two candidates: Tell en-Nasbeh (used for this pin) and Nebi Samwil, several miles apart. Neither has decisive proof." },
 
   mtCarmel:      { name:"Mount Carmel", country:"Israel", lat:32.7333, lng:35.0417 },
   zarephath:     { name:"Zarephath", country:"Lebanon", lat:33.4667, lng:35.2000 },
@@ -234,8 +241,11 @@ const ERA_META = {
   exodus:       { label:"The Exodus", color:"#4F86C6", years:"c. 1446–1406 BC" },
   judges:       { label:"Judges & Ruth", color:"#7A6A3D", years:"c. 1209–1050 BC" },
   davidSolomon: { label:"David & Solomon", color:"#C68A2E", years:"c. 1025–950 BC" },
+  dividedKingdom: { label:"The Kingdom Divides", color:"#8B4A62", years:"c. 930 BC" },
   prophets:     { label:"Elijah, Elisha & Jonah", color:"#2E6B5E", years:"c. 863–760 BC" },
   assyria:      { label:"Assyrian Conquest", color:"#B5442E", years:"732–722 BC" },
+  hezekiah:     { label:"Hezekiah & Sennacherib", color:"#A64B2A", years:"c. 701 BC" },
+  josiah:       { label:"Josiah's Reforms", color:"#4E6C50", years:"c. 622 BC" },
   babylonEra:   { label:"Babylonian Conquest", color:"#6A4C93", years:"605–586 BC" },
   persia:       { label:"Persian Period", color:"#8FBF3F", years:"539–445 BC" },
   hellenistic:  { label:"Greek & Hasmonean Era", color:"#5B7B9A", years:"332–164 BC" },
@@ -243,12 +253,13 @@ const ERA_META = {
   jesus:        { label:"Jesus's Ministry", color:"#C23B62", years:"c. 5 BC – AD 30" },
   earlyChurch:  { label:"The Early Church", color:"#D1495B", years:"AD 30–44" },
   paul1:        { label:"Paul's Journey I", color:"#E0562E", years:"AD 46–48" },
+  jerusalemCouncil: { label:"The Jerusalem Council", color:"#3A6B8A", years:"c. AD 49" },
   paul2:        { label:"Paul's Journey II", color:"#2FD4C4", years:"AD 49–52" },
   paul3:        { label:"Paul's Journey III", color:"#F2C230", years:"AD 53–57" },
   paul4:        { label:"Paul's Journey to Rome", color:"#4B3F72", years:"AD 59–62" },
   revelation:   { label:"John's Vision on Patmos", color:"#2B2E4A", years:"c. AD 95" },
 };
-const ERA_ORDER = ["primeval","abraham","isaacJacobJoseph","exodus","judges","davidSolomon","prophets","assyria","babylonEra","persia","hellenistic","roman","jesus","earlyChurch","paul1","paul2","paul3","paul4","revelation"];
+const ERA_ORDER = ["primeval","abraham","isaacJacobJoseph","exodus","judges","davidSolomon","dividedKingdom","prophets","assyria","hezekiah","josiah","babylonEra","persia","hellenistic","roman","jesus","earlyChurch","paul1","jerusalemCouncil","paul2","paul3","paul4","revelation"];
 
 const TERRITORY_ERAS = [
   { start:-5000, end:-2100, label:"Ancient Near East", color:"#7A6A4A" },
@@ -320,6 +331,11 @@ const STOPS = [
   {era:"davidSolomon",step:10,city:CITY.tyre,year:-966,years:"c. 966 BC",ref:"1 Kings 5:1-12",summary:"King Hiram of Tyre supplies cedar timber and skilled craftsmen for Solomon's Temple in exchange for wheat and olive oil."},
   {era:"davidSolomon",step:11,city:CITY.jerusalem,year:-950,years:"c. 950 BC",ref:"1 Kings 10:1-13",summary:"The Queen of Sheba travels to Jerusalem to test Solomon with hard questions and marvels at his wisdom and wealth."},
 
+  {era:"dividedKingdom",step:1,city:CITY.shechem,year:-930,years:"c. 930 BC",ref:"1 Kings 12:1-19",summary:"Rehoboam refuses to ease the heavy labor his father Solomon imposed; ten tribes revolt under Jeroboam, tearing the united kingdom in two."},
+  {era:"dividedKingdom",step:2,city:CITY.jerusalem,year:-930,years:"c. 930 BC",ref:"1 Kings 12:20-24",summary:"Rehoboam remains king over Judah and Benjamin in the south, keeping Jerusalem as capital and the Temple as the center of worship."},
+  {era:"dividedKingdom",step:3,city:CITY.bethel,year:-930,years:"c. 930 BC",ref:"1 Kings 12:26-33",summary:"Fearing his people will return their loyalty to Jerusalem, Jeroboam sets up a golden calf at Bethel, launching a rival worship system in the north."},
+  {era:"dividedKingdom",step:4,city:CITY.dan,year:-930,years:"c. 930 BC",ref:"1 Kings 12:29-30",summary:"A second golden calf is installed at Dan, Israel's northernmost city, completing Jeroboam's break from Jerusalem-centered worship."},
+
   {era:"prophets",step:1,city:CITY.zarephath,year:-863,years:"c. 863 BC",ref:"1 Kings 17:8-24",summary:"During a severe famine, Elijah multiplies a widow's flour and oil at Zarephath, then raises her son from death."},
   {era:"prophets",step:2,city:CITY.mtCarmel,year:-860,years:"c. 860 BC",ref:"1 Kings 18:20-40",summary:"Elijah confronts 450 prophets of Baal on Mount Carmel; fire falls from heaven on his sacrifice, and the people cry, 'The LORD, he is God!'"},
   {era:"prophets",step:3,city:CITY.mtSinai,year:-860,years:"c. 860 BC",ref:"1 Kings 19:1-13",summary:"Fleeing Jezebel's wrath, Elijah journeys to Horeb and hears the LORD not in wind, earthquake, or fire, but in a still small voice."},
@@ -329,6 +345,13 @@ const STOPS = [
 
   {era:"assyria",step:1,city:CITY.nineveh,year:-732,years:"732 BC",ref:"2 Kings 15:29",summary:"From his capital at Nineveh, Tiglath-Pileser III begins stripping away Israel's territory and deporting its people."},
   {era:"assyria",step:2,city:CITY.samaria,year:-722,years:"722 BC",ref:"2 Kings 17:5-6, 24",summary:"After a three-year siege, Samaria falls to Assyria; Israel's population is exiled and foreign peoples are resettled in the land."},
+
+  {era:"hezekiah",step:1,city:CITY.lachish,year:-701,years:"c. 701 BC",ref:"2 Kings 18:13-14",summary:"Sennacherib's Assyrian army besieges and destroys the fortified city of Lachish, an event he later commemorated in relief carvings in his own palace."},
+  {era:"hezekiah",step:2,city:CITY.jerusalem,year:-701,years:"c. 701 BC",ref:"2 Kings 20:20; 2 Chronicles 32:30",summary:"Anticipating the siege, Hezekiah has a tunnel cut through solid rock to secure Jerusalem's water supply — the tunnel and its inscription survive today."},
+  {era:"hezekiah",step:3,city:CITY.jerusalem,year:-701,years:"c. 701 BC",ref:"2 Kings 19:14-20, 35-36",summary:"Facing Sennacherib's siege and blasphemous threats, Hezekiah prays in the Temple; that night the angel of the LORD strikes the Assyrian camp, and Sennacherib withdraws without taking the city."},
+
+  {era:"josiah",step:1,city:CITY.jerusalem,year:-622,years:"c. 622 BC",ref:"2 Kings 22:8-13",summary:"During Temple repairs, the high priest Hilkiah discovers the long-lost Book of the Law; young King Josiah tears his robes in grief on hearing it read aloud."},
+  {era:"josiah",step:2,city:CITY.jerusalem,year:-622,years:"c. 622 BC",ref:"2 Kings 23:1-25",summary:"Josiah gathers the people, renews the covenant with the LORD, purges Judah of idols and pagan altars, and restores the Passover on a scale unseen since the days of the judges."},
 
   {era:"babylonEra",step:1,city:CITY.babylon,year:-605,years:"605 BC",ref:"Daniel 1:8-20",summary:"Taken captive to Babylon, Daniel and his three friends refuse the king's food and are found ten times wiser than all the royal magicians."},
   {era:"babylonEra",step:2,city:CITY.babylon,year:-605,years:"605 BC",ref:"2 Kings 24:1; Daniel 1:1-2",summary:"Nebuchadnezzar's rising Neo-Babylonian Empire begins campaigns against Judah, carrying off its first captives, including Daniel."},
@@ -382,6 +405,9 @@ const STOPS = [
   {era:"paul1",step:9,city:CITY.derbe,year:47,years:"AD 47",ref:"Acts 14:20-21",summary:"Paul and Barnabas preach the gospel and make many disciples in relative peace."},
   {era:"paul1",step:10,city:CITY.antiochSyria,year:48,years:"AD 48",ref:"Acts 14:21-28",summary:"Retracing their steps through Lystra, Iconium, and Pisidian Antioch to strengthen the new churches, they sail home from Attalia to report all God had done."},
 
+  {era:"jerusalemCouncil",step:1,city:CITY.jerusalem,year:49,years:"c. AD 49",ref:"Acts 15:1-6",summary:"Sharp dispute arises over whether Gentile believers must be circumcised and keep the law of Moses; the apostles and elders convene in Jerusalem to settle the question."},
+  {era:"jerusalemCouncil",step:2,city:CITY.jerusalem,year:49,years:"c. AD 49",ref:"Acts 15:13-21",summary:"After hearing Peter, Paul, and Barnabas, James renders the council's decision: Gentiles are not required to be circumcised, freeing the gospel to spread without that barrier."},
+
   {era:"paul2",step:1,city:CITY.antiochSyria,year:49,years:"AD 49",ref:"Acts 15:36-41",summary:"After the Jerusalem Council, Paul sets out again; a sharp dispute over John Mark splits Paul from Barnabas, and Paul chooses Silas as his companion."},
   {era:"paul2",step:2,city:CITY.derbe,year:49,years:"AD 49",ref:"Acts 16:1",summary:"Passing again through Syria and Cilicia, Paul strengthens the churches on his way to Derbe and Lystra."},
   {era:"paul2",step:3,city:CITY.lystra,year:49,years:"AD 49",ref:"Acts 16:1-5",summary:"Paul meets the young disciple Timothy, has him circumcised for the sake of the Jews, and adds him to the missionary band."},
@@ -424,9 +450,9 @@ const STOPS = [
 /* MAP SETUP                                                          */
 /* ------------------------------------------------------------------ */
 const map = L.map('map', { zoomControl:true, worldCopyJump:true }).setView([33.5, 34], 6);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-  attribution:'&copy; OpenStreetMap &copy; CARTO',
-  maxZoom:18
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'&copy; OpenStreetMap contributors',
+  maxZoom:19
 }).addTo(map);
 
 // A rough polygon over the land of Israel/Judah for the territory tint
@@ -438,11 +464,14 @@ const israelPoly = L.polygon([
 let markers = [];
 let routeLine = null;
 
-function makeIcon(color, active, offmap){
+function makeIcon(color, active, offmap, traditional){
   const size = active ? 22 : 14;
+  const ring = traditional
+    ? `<div style="position:absolute;top:-4px;left:-4px;width:${size+8}px;height:${size+8}px;border-radius:50%;border:1.5px dashed ${color};opacity:0.8;"></div>`
+    : '';
   const html = offmap
-    ? `<div style="width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:12px solid ${color};filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));"></div>`
-    : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2.5px solid #2B2418;box-shadow:0 1px 4px rgba(0,0,0,.5);${active?'animation:pulse 1.8s infinite;':''}"></div>`;
+    ? `<div style="position:relative;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:12px solid ${color};filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));">${ring}</div>`
+    : `<div style="position:relative;width:${size}px;height:${size}px;">${ring}<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2.5px solid #2B2418;box-shadow:0 1px 4px rgba(0,0,0,.5);${active?'animation:pulse 1.8s infinite;':''}"></div></div>`;
   return L.divIcon({ html, className:'', iconSize:[size,size], iconAnchor:[size/2,size/2] });
 }
 
@@ -453,7 +482,7 @@ document.head.appendChild(pulseStyle);
 /* ------------------------------------------------------------------ */
 /* STATE                                                              */
 /* ------------------------------------------------------------------ */
-let stepIndex = 88; // start at Paul's Journey I (everything from Creation through Jesus's ministry and the early church comes before it)
+let stepIndex = 97; // start at Paul's Journey I (everything from Creation through the early church comes before it)
 let isPlaying = false;
 let speed = 1;
 let playTimer = null;
@@ -553,6 +582,13 @@ function render(){
   document.getElementById('panelTag').style.background = meta.color;
   document.getElementById('cityName').textContent = stop.city.name + (stop.city.offmap ? ' (off map)' : '');
   document.getElementById('cityCountry').textContent = stop.city.country;
+  const noteEl = document.getElementById('locationNote');
+  if (stop.city.traditional && stop.city.note){
+    noteEl.style.display = 'block';
+    noteEl.textContent = '📍 Approximate/traditional site — ' + stop.city.note;
+  } else {
+    noteEl.style.display = 'none';
+  }
   document.getElementById('statYears').textContent = stop.years;
   document.getElementById('statRef').textContent = stop.ref;
   document.getElementById('summary').textContent = stop.summary;
@@ -580,9 +616,9 @@ function render(){
     const active = idx === localIndex;
     const past = idx <= localIndex;
     const color = past ? meta.color : '#B0A489';
-    const icon = makeIcon(color, active, s.city.offmap);
+    const icon = makeIcon(color, active, s.city.offmap, s.city.traditional);
     const mk = L.marker([s.city.lat, s.city.lng], { icon }).addTo(map);
-    mk.bindTooltip(`${s.step}. ${s.city.name}`, { permanent:false, direction:'top', className:'pin-label' });
+    mk.bindTooltip(`${s.step}. ${s.city.name}${s.city.traditional ? ' (approx.)' : ''}`, { permanent:false, direction:'top', className:'pin-label' });
     mk.on('click', () => { goTo(s.globalIndex); setPlaying(false); });
     markers.push(mk);
     latlngs.push([s.city.lat, s.city.lng]);
